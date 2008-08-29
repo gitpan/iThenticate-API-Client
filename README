@@ -1,0 +1,337 @@
+iThenticate::API::ClienUts(e3r)Contributed Perl DocumentiaTthieonnticate::API::Client(3)
+
+
+
+NNAAMMEE
+       iThenticate::API::Client - a client class to access the iThenticate API
+
+SSYYNNOOPPSSIISS
+        # construct a new client
+        $client = iThenticate::API::Client->new({
+            username => $username,
+            password => $password,
+            url     => ’https://api.ithenticate.com:443/rpc’, # default https://test.api.ithenticate.com:443/rpc
+        });
+
+        # authenticate the client, returns an iThenticate::API::Response object
+        $response = $client->login;
+
+        # access the session id from the response object
+        $sid = $response->sid;
+
+        # submit a document
+        $response = $client->add_document({
+            title           => ’Moby Dick’,
+            author_first    => ’Herman’,
+            author_last     => ’Melville’,
+            filename        => ’moby_dick.doc’,
+            folder          => 72,    # folder id
+            submit_to       => 1,     # 1 => ’Generate Report Only’
+            upload          => ‘cat moby_dick.doc‘, # binary content of document
+                                                    # the client module will base64 and chunk it
+        });
+
+        # get the newly created document id
+        $document_id = $response->id;
+        $document    = $response->document;
+
+        # get the document parts (note use of hash reference instead of object method)
+        $parts = $document->{parts};
+
+DDEESSCCRRIIPPTTIIOONN
+       This module provides a client library interface to the iThenticate API
+       web services.  It encapsulates different transport engines to provide a
+       set of methods through which the user can access the iThenticate API
+       programmatically.
+
+       See the iThenticate API reference web page at http://www.ithenti-
+       cate.com/api.html for more details.
+
+MMEETTHHOODDSS
+       CCOONNSSTTRRUUCCTTOORRSS AANNDD AAUUTTHHEENNTTIICCAATTIIOONN
+
+
+       _n_e_w_(_)
+            # construct a new client
+            $client = iThenticate::API::Client->new({
+                username => $username,
+                password => $password,
+                host     => ’api.ithenticate.com’, # default test.api.ithenticate.com
+                path     => ’rpc’,                 # default rpc
+                port     => 3000,                  # default 3000
+            });
+
+            Returns an iThenticate::API::Response object
+
+       _c_r_e_d_e_n_t_i_a_l_s_(_)
+            # pass basic auth credentials to the client
+            $client->credentials({
+                realm    => ’My Authenticated Realm’,
+                username => ’foo@example.com’,
+                password => ’zimzamfoo123’,
+            });
+
+       _l_o_g_i_n_(_)
+            # authenticate the client, returns an iThenticate::API::Response object
+            $response = $client->login;
+
+            # access the session id from the response object
+            $sid = $response->sid;
+
+           The session id (sid) is stored internally in the client for future
+           authentication so there is no need to pass it explicitly
+
+       FFOOLLDDEERR GGRROOUUPPSS
+
+
+       _a_d_d___f_o_l_d_e_r___g_r_o_u_p_(_)
+            # add a folder group
+            $response = $client->add_folder_group({
+                name => ’iThenticate’,
+            });
+
+            $folder_group_id = $response->id;
+
+       _l_i_s_t___f_o_l_d_e_r___g_r_o_u_p_s_(_)
+            # list folder groups
+            $response = $client->list_folder_groups;
+
+            # returns an array reference of hash references holding the folder group data owned by the api user
+            $folder_groups = $response->groups;
+
+            # Example response data:
+            # $folder_groups->[0] = { id => 1, name => ’First Folder Group’ };
+
+       _g_r_o_u_p___f_o_l_d_e_r_s_(_)
+            # returns all the folders in a group
+            $response = $client->group_folders({ id => $folder_group_id });
+
+            # returns an array reference of folder hashes
+            $folders = $response->folders;
+
+            # Example response data:
+            # $folders->[0] = { id => 1,
+            #                   name => ’First Folder’,
+            #                   group => {
+            #                       id    => 1,
+            #                       name  => ’First Folder Group’, }, };
+
+       _d_r_o_p___g_r_o_u_p_(_)
+            # remove a folder group
+            $response = $client->drop_group({ id => $folder_group_id });
+
+            # Returns a message on successful response, with no errors
+            if (!$response->errors &&
+                $response->messages->[0] eq "Group \"$folder_group_id\" removed") {
+                print "Group $folder_group_id dropped successfully\n";
+            }
+
+       FFOOLLDDEERRSS
+
+
+       _a_d_d___f_o_l_d_e_r_(_)
+            # add a folder
+            $response = $client->add_folder({
+                name           => ’API Specification’,
+                description    => ’Holds documentation referencing the iThenticate API’,
+                folder_group   => 79, # id of the folder group
+                exclude_quotes => 1,  # 1 (true), or 0 (false)
+                add_to_index   => 1,  # 1 (true), or 0 (false), needed if account has
+                                          # a private storage node
+            });
+
+            # returns the id of the newly created folder
+            $folder_id = $response->id;
+
+       _g_e_t___f_o_l_d_e_r_(_)
+            # get a folder and related documents
+            $response = $client->get_folder({ id => $folder_id });
+
+            # see group_folders() for folder response data format
+            $folder = $response->folder;
+
+            # get the documents for this folder
+            $documents = $response->documents;
+
+            # Example document data
+            # $documents->[0] = { author_first   => ’Jules’, author_last   => ’Varne’,
+            #                     is_pending     => 1,       percent_match => ’83.2’,
+            #                     processed_time => ’94.3’,  title         => ’10,000 Leagues Over The Sea’,
+            #                     parts          => $parts,  uploaded_time  => ’2008-03-13 07:35:35 PST’,
+            #                     id    => 1, };
+
+            # Example document parts data
+            # $parts->[0] = { part_id => 1, doc_id => 1, score => ’95.2’, word => 456, };
+
+       _l_i_s_t___f_o_l_d_e_r_s_(_)
+            # returns all the folders for a user
+            $response = $client->list_folders();
+
+            # returns an array reference of folder hashes
+            $folders = $response->folders;
+
+            # see get_folder() for the response folder data example
+
+       _t_r_a_s_h___f_o_l_d_e_r_(_)
+            # move a folder to the trash
+            $response = $client->trash_folder({ id => $folder_id });
+
+            print "Folder trashed ok!" if ( !$response->errors &&
+                                            $response->messages->[0] eq ’Moved to Trash’ );
+
+       DDOOCCUUMMEENNTTSS
+
+
+       _a_d_d___d_o_c_u_m_e_n_t_(_)
+            # submit a document
+            $response = $client->add_document({
+                title           => ’Moby Dick’,
+                author_first    => ’Herman’,
+                author_last     => ’Melville’,
+                filename        => ’moby_dick.doc’,
+
+                # binary content of document
+                # the client module will base64 and chunk it
+                # note - don’t actually use backticks like shown here :)
+                upload          => ‘cat moby_dick.doc‘,
+
+                folder          => 72,    # folder id
+
+                # options 2 and 3 only available for accounts with private nodes
+                submit_to       => 1,     # 1 => ’Generate Report Only’
+                                          # 2 => ’to Document Repository Only’
+                                          # 3 => ’to Document Repository & Generate Report’
+            });
+
+            # get the newly created document id
+            $document_id = $response->id;
+            $document = $response->document;
+
+            # see get_folder() for the response data format for the document
+
+       _g_e_t___d_o_c_u_m_e_n_t_(_)
+            # check the status of a document submission
+            $response = $client->get_document({
+               id => $document_id,
+            });
+
+            # access the document attributes from the response
+            $document_id   = $response->id;
+
+            # returns an array reference of document part hash references
+            $document_parts = $document->{parts};
+
+            # see get_folder() for the document and document parts data formats
+
+       _t_r_a_s_h___d_o_c_u_m_e_n_t_(_)
+            # move a document to the trash
+            $response = $client->trash_document({ id => $document_id });
+
+       RREEPPOORRTTIINNGG
+
+
+       _g_e_t___r_e_p_o_r_t_(_)
+            # get an get report
+            $response = $client->get_report({
+                id                   => $document_part_id,
+            });
+
+            # see if the report is ready
+            if ( $response->errors && ( $response->status == 404 ) ) {
+
+               # the report may still be in progress
+               if ( $response->messages->[0] =~ m/report in progress/i ) {
+                   print "Report is still being prepared, please try later\n";
+               } else {
+                   print STDERR "Report not found found document part $document_part_id\n";
+               }
+
+            } else {
+
+               # report is ready, see iThenticate::API::Response for report object details
+               $report = $response->report;
+
+               $report_url = $report->{view_only_url};
+
+               # save the report content to disk
+               $grab_report = ‘wget --output-document=$HOME/reports/new.html $report_url‘;
+            }
+
+       AACCCCOOUUNNTTSS
+
+
+       _g_e_t___a_c_c_o_u_n_t_(_)
+            # get the account status
+            $response = $client->get_account;
+
+            $account_status = $response->account_status;
+
+       UUSSEERRSS
+
+
+       _a_d_d___u_s_e_r_(_)
+            # add a user
+            $response = $client->add_user({
+                first_name => ’Joe’,
+                last_name  => ’User’,
+                email      => ’joe@user.com’,
+                password   => ’swizzlestick123’,
+            });
+
+            $user_id = $response->id;
+
+       _p_u_t___u_s_e_r_(_)
+             # update a user’s information
+             $response = $client->put_user({
+                 email => ’joeuser@gmail.com’,
+             });
+
+             if ( $response->messages->[1] eq ’Email updated for user joeuser@gmail.com’ ) {
+                 print ’got the right message’;
+             }
+
+       _d_r_o_p___u_s_e_r_(_)
+            # delete a user from the account
+            $response = $client->drop_user({ id => $user_id });
+
+            print ’some errors occurred’ if $response->errors;
+
+       _l_i_s_t___u_s_e_r_s_(_)
+            # users listing
+            $response = $client->list_users;
+
+            # returns a an array reference of user data in hashes
+            $users = $response->users;
+
+            # Example user data format
+            # $users->[0] = { id => 1,               email => ’jules@varne.com’,
+            #                 first_name => ’Jules’, last_name => ’Varne’, };
+
+TTEESSTTIINNGG
+       To enable testing against the iThenticate live test API, set the fol-
+       lowing environment variables before running ’make test’.
+
+       IT_USERNAME IT_PASSWORD IT_API_URL
+
+       See your iThenticate account representative to obtain these credentials
+       to the API testing environment.
+
+BBUUGGSS
+       IT_API_URL
+           If you receive an error back from the server that looks like ’mis-
+           matched tag’ then you likely have an invalid url specified for
+           IT_API_URL instead of an actual mismatched tag in the request xml.
+
+SSEEEE AALLSSOO
+       iThenticate::API::Request, iThenticate::API::Response, RPC::XML,
+       SOAP::Lite
+
+AAUUTTHHOORR
+       Fred Moyer <fred@iparadigms.com>
+
+CCOOPPYYRRIIGGHHTT
+       Copyright 2008 iParadigms LLC
+
+
+
+perl v5.8.8                       2008-08-28       iThenticate::API::Client(3)

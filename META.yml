@@ -1,0 +1,17 @@
+--- #YAML:1.0
+name:                iThenticate-API-Client
+version:             0.08
+abstract:            a client class to access the iThenticate API
+license:             ~
+author:              
+    - Fred Moyer <fred@iparadigms.com>
+generated_by:        ExtUtils::MakeMaker version 6.44
+distribution_type:   module
+requires:     
+    Crypt::SSLeay:                 0.57
+    iThenticate::API::Request:     0.06
+    RPC::XML:                      1.36
+    URI:                           1.35
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

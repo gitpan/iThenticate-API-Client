@@ -1,0 +1,38 @@
+Revision history for Perl extension iThenticate-API-Client.
+
+0.08 Thu Aug 28 17:05:55 2008 PST
+    - update report.get request parameters
+    - add credentials method for basic authentication
+
+0.07 Thu Jun 12 12:18:00 2008 PST
+    - update unit tests to handle updated response object
+    - add test for documents that are too small
+    - add test for server timestamp
+
+0.06 Thu Jun 05 15:35:00 2008 PST
+    - add doc_check.pl to distribution
+    - require iThenticate::API::Request 0.04
+
+0.05 Wed Jun 04 19:55:17 2008 PST
+    - update tests to reflect changed report.get responses
+    - require Crypt::SSLeay as a dependency to prevent ambiguous 302 responses
+      when using http urls
+
+0.04  Wed Apr 30 17:49:21 2008 PST
+    - add note that add_to_index is needed if account has a private node
+
+0.03  Wed Apr 30 13:53:33 2008 PST
+    - fix a bug in the error handling exposed by testing against an http
+      version of the server running under mod_perl
+    - get rid of IT_API_HOST and use IT_API_URL in place
+
+0.02  Mon Apr 07 15:46:57 2008 PST
+    - handle nested object representation instead of flattened
+    - move to object.method rpc call syntax
+    - handle RPC::XML::fault response objects properly [fred]
+
+0.01  Tue Feb 19 21:23:17 2008
+    - initial release for review
+    - original version; created by h2xs 1.23 with options
+		-X iThenticate-API-Client
+

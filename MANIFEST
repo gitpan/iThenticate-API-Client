@@ -1,0 +1,10 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/iThenticate-API-Client.t
+lib/iThenticate/API/Client.pm
+eg/doc_submit.pl
+eg/doc_check.pl
+eg/get_report.pl
+META.yml                                 Module meta-data (added by MakeMaker)
